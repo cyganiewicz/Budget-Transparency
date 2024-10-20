@@ -164,7 +164,7 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // Load Chart of Accounts, then load budget data
+    // Load Chart of Accounts, then load budget data and render the page
     loadChartOfAccounts()
         .then(() => fetchCSV(budgetDataUrl))
         .then(data => {
