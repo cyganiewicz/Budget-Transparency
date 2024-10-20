@@ -137,4 +137,40 @@ document.addEventListener("DOMContentLoaded", function() {
 
         const ctx = document.getElementById("expenditure-chart").getContext("2d");
         new Chart(ctx, {
-            type
+            type: "bar",
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: "FY24 Budget",
+                        backgroundColor: "rgba(0, 123, 255, 0.5)",
+                        data: fy24Budget
+                    },
+                    {
+                        label: "FY25 Dept Request",
+                        backgroundColor: "rgba(220, 53, 69, 0.5)",
+                        data: fy25DeptReq
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+
+    // Load Chart of Accounts, then load budget data
+    loadChartOfAccounts()
+        .then(() => fetchCSV(budgetDataUrl))
+        .then(data => {
+            updateSummaryCards(data);
+            populateTable(data);
+            createChart(data);
+        })
+        .catch(error => console.error("Error loading data:", error));
+});
