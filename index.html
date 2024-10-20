@@ -1,0 +1,56 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2818
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 <!DOCTYPE html>\
+<html lang="en">\
+<head>\
+    <meta charset="UTF-8">\
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">\
+    <title>Budget Transparency Portal</title>\
+    <link rel="stylesheet" href="styles.css">\
+    <script defer src="script.js"></script>\
+</head>\
+<body>\
+    <div class="container">\
+        <h1 class="title">Budget Transparency Portal</h1>\
+        <div class="summary-cards">\
+            <div class="card" id="total-budget-card">\
+                <h2>Total Budget FY25</h2>\
+                <p id="total-budget">$0</p>\
+            </div>\
+            <div class="card" id="ytd-spending-card">\
+                <h2>Total Spending FY23</h2>\
+                <p id="ytd-spending">$0</p>\
+            </div>\
+            <div class="card" id="remaining-budget-card">\
+                <h2>Budget Change FY25 vs FY24</h2>\
+                <p id="budget-change">$0</p>\
+            </div>\
+        </div>\
+        <h2>Expenditure Overview</h2>\
+        <canvas id="expenditure-chart" width="400" height="200"></canvas>\
+        <h2>Detailed Budget Data</h2>\
+        <div class="table-container">\
+            <table id="budget-table">\
+                <thead>\
+                    <tr>\
+                        <th>Description</th>\
+                        <th>FY23 Actuals</th>\
+                        <th>FY24 Budget</th>\
+                        <th>FY25 Dept Request</th>\
+                        <th>% Change FY24 to FY25</th>\
+                    </tr>\
+                </thead>\
+                <tbody id="budget-table-body">\
+                    <!-- Data will be inserted here -->\
+                </tbody>\
+            </table>\
+        </div>\
+    </div>\
+</body>\
+</html>\
+}
