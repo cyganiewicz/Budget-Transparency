@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const structuredData = processData(budgetData, chartOfAccounts);
         console.log("Structured Data:", structuredData);
         
-        initializeChartsAndTables(structuredData);
+        initializeChartsAndTable(structuredData);
     }).catch(error => {
         console.error("Error loading CSV data:", error);
     });
@@ -47,7 +47,7 @@ document.addEventListener("DOMContentLoaded", function () {
             // Find or create the category entry
             let categoryEntry = structuredData.find(c => c.category === category);
             if (!categoryEntry) {
-                categoryEntry = { category, departments: [] };
+                categoryEntry = { category, total: 0, departments: [] };
                 structuredData.push(categoryEntry);
             }
 
@@ -70,31 +70,33 @@ document.addEventListener("DOMContentLoaded", function () {
 
             departmentEntry.lineItems.push(lineItem);
             departmentEntry.total += lineItem.fy25;
+            categoryEntry.total += lineItem.fy25;
         });
 
         return structuredData;
     }
 
-    // Initialize the charts and tables with the processed data
-    function initializeChartsAndTables(budgetData) {
+    // Initialize the charts and table with the processed data
+    function initializeChartsAndTable(budgetData) {
         let currentCategory = null;
-        let currentDepartment = null;
 
-        // Function to update the category chart
-        function updateCategoryChart() {
+        // Function to update the category pie chart
+        function updateCategoryPieChart() {
             const ctx = document.getElementById('categoryChart').getContext('2d');
             const categoryLabels = budgetData.map(item => item.category);
-            const categoryData = budgetData.map(item => item.departments.reduce((sum, dept) => sum + dept.total, 0));
+            const categoryData = budgetData.map(item => item.total);
 
-            // Create the category chart
+            // Create the category pie chart
             new Chart(ctx, {
-                type: 'bar',
+                type: 'pie',
                 data: {
                     labels: categoryLabels,
                     datasets: [{
                         label: 'Total Spending by Category',
                         data: categoryData,
-                        backgroundColor: 'rgba(54, 162, 235, 0.6)'
+                        backgroundColor: [
+                            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'
+                        ]
                     }]
                 },
                 options: {
@@ -103,7 +105,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             const index = elements[0].index;
                             currentCategory = budgetData[index];
                             console.log("Selected Category:", currentCategory);
-                            updateDepartmentChart();
+                            updateDetailedTable();
                         }
                     },
                     responsive: true,
@@ -114,68 +116,44 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         }
 
-        // Function to update the department chart based on the selected category
-        function updateDepartmentChart() {
-            const ctx = document.getElementById('departmentChart').getContext('2d');
-            const departmentLabels = currentCategory.departments.map(dept => dept.name);
-            const departmentData = currentCategory.departments.map(dept => dept.total);
-
-            // Destroy previous chart instance if it exists to avoid duplication
-            if (window.departmentChartInstance) {
-                window.departmentChartInstance.destroy();
-            }
-
-            window.departmentChartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: departmentLabels,
-                    datasets: [{
-                        label: `Total Spending in ${currentCategory.category}`,
-                        data: departmentData,
-                        backgroundColor: 'rgba(75, 192, 192, 0.6)'
-                    }]
-                },
-                options: {
-                    onClick: (event, elements) => {
-                        if (elements.length > 0) {
-                            const index = elements[0].index;
-                            currentDepartment = currentCategory.departments[index];
-                            console.log("Selected Department:", currentDepartment);
-                            updateLineItemTable();
-                        }
-                    },
-                    responsive: true,
-                    plugins: {
-                        legend: { display: true }
-                    }
-                }
-            });
-        }
-
-        // Function to update the line item table based on the selected department
-        function updateLineItemTable() {
+        // Function to update the detailed table based on the selected category
+        function updateDetailedTable() {
             const tableBody = document.getElementById('budgetTable').querySelector('tbody');
             tableBody.innerHTML = '';
 
-            currentDepartment.lineItems.forEach(item => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${currentDepartment.name}</td>
-                    <td>${currentCategory.category}</td>
-                    <td>${item.description}</td>
-                    <td>${item.fy21.toFixed(2)}</td>
-                    <td>${item.fy22.toFixed(2)}</td>
-                    <td>${item.fy23.toFixed(2)}</td>
-                    <td>${item.fy24.toFixed(2)}</td>
-                    <td>${item.fy25.toFixed(2)}</td>
+            if (!currentCategory) {
+                return;
+            }
+
+            currentCategory.departments.forEach(department => {
+                const deptRow = document.createElement('tr');
+                deptRow.innerHTML = `
+                    <td colspan="8"><strong>${department.name}</strong></td>
                 `;
-                tableBody.appendChild(row);
+                tableBody.appendChild(deptRow);
+
+                department.lineItems.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${department.name}</td>
+                        <td>${currentCategory.category}</td>
+                        <td>${item.description}</td>
+                        <td>${item.fy21.toFixed(2)}</td>
+                        <td>${item.fy22.toFixed(2)}</td>
+                        <td>${item.fy23.toFixed(2)}</td>
+                        <td>${item.fy24.toFixed(2)}</td>
+                        <td>${item.fy25.toFixed(2)}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
             });
 
             document.getElementById('data-table').scrollIntoView({ behavior: 'smooth' });
         }
 
-        // Initialize the category chart
-        updateCategoryChart();
+        // Initialize the category pie chart and the detailed table with the first category selected
+        updateCategoryPieChart();
+        currentCategory = budgetData[0];
+        updateDetailedTable();
     }
 });
