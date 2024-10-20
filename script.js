@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", function() {
     let chartOfAccounts = {};
 
     function fetchCSV(url) {
+        console.log(`Fetching data from: ${url}`);
         return fetch(url)
             .then(response => {
                 if (!response.ok) {
@@ -13,21 +14,31 @@ document.addEventListener("DOMContentLoaded", function() {
                 return response.text();
             })
             .then(text => {
+                console.log("CSV data fetched successfully.");
                 const rows = text.trim().split("\n").map(row => row.split(",").map(cell => cell.trim()));
                 const headers = rows.shift().map(header => header.trim());
-                return rows.map(row => {
+                console.log("Parsed headers:", headers);
+                const data = rows.map(row => {
                     return headers.reduce((acc, header, index) => {
                         const value = row[index]?.replace(/[$,]/g, '').trim();
                         acc[header] = isNaN(value) ? value : parseFloat(value);
                         return acc;
                     }, {});
                 });
+                console.log("Parsed data:", data);
+                return data;
             })
-            .catch(error => console.error("Error fetching CSV:", error));
+            .catch(error => {
+                console.error("Error fetching CSV:", error);
+            });
     }
 
     function loadChartOfAccounts() {
         return fetchCSV(chartOfAccountsUrl).then(data => {
+            if (!data) {
+                console.error("No data found for Chart of Accounts.");
+                return;
+            }
             chartOfAccounts = data.reduce((acc, item) => {
                 const accountNumber = item["Account Number"];
                 if (accountNumber && item["Category"] && item["Department"]) {
@@ -35,10 +46,12 @@ document.addEventListener("DOMContentLoaded", function() {
                         category: item["Category"],
                         department: item["Department"]
                     };
+                } else {
+                    console.warn("Missing category or department for account:", accountNumber);
                 }
                 return acc;
             }, {});
-            console.log("Chart of Accounts:", chartOfAccounts);
+            console.log("Loaded Chart of Accounts:", chartOfAccounts);
         });
     }
 
@@ -50,6 +63,12 @@ document.addEventListener("DOMContentLoaded", function() {
         document.getElementById("total-budget").textContent = `$${totalFY25.toLocaleString()}`;
         document.getElementById("ytd-spending").textContent = `$${totalFY24.toLocaleString()}`;
         document.getElementById("budget-change").textContent = percentageChange;
+
+        console.log("Updated summary cards:", {
+            totalFY25,
+            totalFY24,
+            percentageChange
+        });
     }
 
     function calculatePercentageChange(fy24, fy25) {
@@ -58,6 +77,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     function groupDataByCategoryAndDepartment(data) {
+        console.log("Grouping data by category and department...");
         return data.reduce((acc, item) => {
             const accountNumber = item["Account Number"];
             const chartEntry = chartOfAccounts[accountNumber] || {
@@ -80,10 +100,13 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     function populateTable(data) {
+        console.log("Populating table with data...");
         const tbody = document.getElementById("budget-table-body");
         tbody.innerHTML = "";
 
         const groupedData = groupDataByCategoryAndDepartment(data);
+        console.log("Grouped data:", groupedData);
+
         Object.keys(groupedData).forEach(category => {
             const categoryRow = document.createElement("tr");
             categoryRow.classList.add("category-row");
@@ -162,12 +185,18 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
             }
         });
+
+        console.log("Chart created with data:", { labels, fy24Budget, fy25DeptReq });
     }
 
     // Load Chart of Accounts, then load budget data and render the page
     loadChartOfAccounts()
         .then(() => fetchCSV(budgetDataUrl))
         .then(data => {
+            if (!data) {
+                console.error("No data available from the budget CSV.");
+                return;
+            }
             updateSummaryCards(data);
             populateTable(data);
             createChart(data);
