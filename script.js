@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 const headers = rows.shift();
                 console.log("Headers:", headers);
 
-                return rows.filter(row => row.length === headers.length).map(row => {
+                return rows.map(row => {
                     const item = headers.reduce((acc, header, index) => {
                         const value = row[index]?.replace(/[$,]/g, '').trim();
                         acc[header] = isNaN(value) ? value : parseFloat(value);
@@ -30,13 +30,12 @@ document.addEventListener("DOMContentLoaded", function() {
 
     function updateSummaryCards(data) {
         const totalFY25 = data.reduce((acc, item) => acc + (item["FY25 DEPT REQ."] || 0), 0);
-        const totalFY23 = data.reduce((acc, item) => acc + (item["FY23 ACTUALS"] || 0), 0);
         const totalFY24 = data.reduce((acc, item) => acc + (item["FY24 BUDGET"] || 0), 0);
-        const budgetChange = totalFY25 - totalFY24;
+        const percentageChange = calculatePercentageChange(totalFY24, totalFY25);
 
         document.getElementById("total-budget").textContent = `$${totalFY25.toLocaleString()}`;
-        document.getElementById("ytd-spending").textContent = `$${totalFY23.toLocaleString()}`;
-        document.getElementById("budget-change").textContent = `$${budgetChange.toLocaleString()}`;
+        document.getElementById("ytd-spending").textContent = `$${totalFY24.toLocaleString()}`;
+        document.getElementById("budget-change").textContent = percentageChange;
     }
 
     function calculatePercentageChange(fy24, fy25) {
