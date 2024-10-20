@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
     // URLs for the CSV data
     const budgetDataUrl = "https://raw.githubusercontent.com/cyganiewicz/Budget-Transparency/refs/heads/main/TEST%20FY25%20General%20Fund%20Budget%20Master%20for%20Accounting.csv";
-    const chartOfAccountsUrl = "https://raw.githubusercontent.com/cyganiewicz/Budget-Transparency/refs/heads/main/Chart%20of%20Accounts";
+    const chartOfAccountsUrl = "https://raw.githubusercontent.com/cyganiewicz/Budget-Transparency/refs/heads/main/Chart%20of%20Accounts%20Organization.csv";
 
     // Function to fetch and parse CSV data
     function fetchCSV(url) {
