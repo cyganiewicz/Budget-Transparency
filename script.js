@@ -14,10 +14,11 @@ document.addEventListener("DOMContentLoaded", function() {
                 console.log("Raw CSV Rows:", rows);
                 const headers = rows.shift();
                 console.log("Headers:", headers);
-                
+
                 return rows.filter(row => row.length === headers.length).map(row => {
                     const item = headers.reduce((acc, header, index) => {
-                        acc[header] = isNaN(row[index]) ? row[index] : parseFloat(row[index].replace(/[$,]/g, '').trim() || 0);
+                        const value = row[index]?.replace(/[$,]/g, '').trim();
+                        acc[header] = isNaN(value) ? value : parseFloat(value);
                         return acc;
                     }, {});
                     console.log("Parsed Row:", item);
@@ -28,13 +29,13 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     function updateSummaryCards(data) {
-        const totalBudget = data.reduce((acc, item) => acc + (item["FY25 DEPT REQ."] || 0), 0);
-        const ytdSpending = data.reduce((acc, item) => acc + (item["FY23 ACTUALS"] || 0), 0);
-        const previousYearBudget = data.reduce((acc, item) => acc + (item["FY24 BUDGET"] || 0), 0);
-        const budgetChange = totalBudget - previousYearBudget;
+        const totalFY25 = data.reduce((acc, item) => acc + (item["FY25 DEPT REQ."] || 0), 0);
+        const totalFY23 = data.reduce((acc, item) => acc + (item["FY23 ACTUALS"] || 0), 0);
+        const totalFY24 = data.reduce((acc, item) => acc + (item["FY24 BUDGET"] || 0), 0);
+        const budgetChange = totalFY25 - totalFY24;
 
-        document.getElementById("total-budget").textContent = `$${totalBudget.toLocaleString()}`;
-        document.getElementById("ytd-spending").textContent = `$${ytdSpending.toLocaleString()}`;
+        document.getElementById("total-budget").textContent = `$${totalFY25.toLocaleString()}`;
+        document.getElementById("ytd-spending").textContent = `$${totalFY23.toLocaleString()}`;
         document.getElementById("budget-change").textContent = `$${budgetChange.toLocaleString()}`;
     }
 
