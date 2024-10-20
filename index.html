@@ -3,77 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Budget Transparency Portal</title>
-    <style>
-        /* CSS styles as discussed */
-        .hidden {
-            display: none;
-        }
-
-        .category-row {
-            background-color: #007BFF;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .department-row {
-            background-color: #17a2b8;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .line-item {
-            background-color: #f8f9fa;
-            color: #333;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            padding: 8px;
-            text-align: left;
-            border: 1px solid #ddd;
-        }
-
-        th {
-            background-color: #f1f1f1;
-            font-weight: bold;
-        }
-
-        .category-row:hover, .department-row:hover {
-            background-color: #0056b3; /* Darker shade for hover effect */
-        }
-
-        .line-item:hover {
-            background-color: #e9ecef; /* Light grey for hover effect */
-        }
-    </style>
+    <title>Budget Transparency Portal - Town of Rutland</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <h1>Budget Transparency Portal</h1>
-    <div>
-        <h2>Total FY25 Budget: <span id="total-budget">$0</span></h2>
-        <h2>Total FY24 Budget: <span id="ytd-spending">$0</span></h2>
-        <h2>Budget Change: <span id="budget-change">0%</span></h2>
-    </div>
-    <table>
-        <thead>
-            <tr>
-                <th>Description</th>
-                <th>FY23 Actuals</th>
-                <th>FY24 Budget</th>
-                <th>FY25 Dept Request</th>
-                <th>% Change</th>
-            </tr>
-        </thead>
-        <tbody id="budget-table-body"></tbody>
-    </table>
-    <canvas id="expenditure-chart" width="800" height="400"></canvas>
+    <header>
+        <h1>Town of Rutland Budget Transparency Portal</h1>
+        <nav>
+            <ul>
+                <li><a href="#department-spending">Department Spending</a></li>
+                <li><a href="#category-spending">Category Spending</a></li>
+                <li><a href="#yearly-comparison">Yearly Comparison</a></li>
+                <li><a href="#data-table">Data Table</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section id="department-spending">
+        <h2>Department Spending for FY25</h2>
+        <canvas id="departmentChart"></canvas>
+    </section>
+
+    <section id="category-spending">
+        <h2>Category Spending for FY25</h2>
+        <canvas id="categoryChart"></canvas>
+    </section>
+
+    <section id="yearly-comparison">
+        <h2>Yearly Spending Comparison</h2>
+        <canvas id="yearlyChart"></canvas>
+    </section>
+
+    <section id="data-table">
+        <h2>Detailed Budget Data</h2>
+        <table id="budgetTable">
+            <thead>
+                <tr>
+                    <th>Department</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th>FY21 Actuals</th>
+                    <th>FY22 Actuals</th>
+                    <th>FY23 Actuals</th>
+                    <th>FY24 Budget</th>
+                    <th>FY25 Department Request</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows will be populated by JavaScript -->
+            </tbody>
+        </table>
+    </section>
+
     <script src="script.js"></script>
 </body>
 </html>
