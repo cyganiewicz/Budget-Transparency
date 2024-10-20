@@ -1,205 +1,166 @@
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
+    // URLs for the CSV data
     const budgetDataUrl = "https://raw.githubusercontent.com/cyganiewicz/Budget-Transparency/refs/heads/main/TEST%20FY25%20General%20Fund%20Budget%20Master%20for%20Accounting.csv";
     const chartOfAccountsUrl = "https://raw.githubusercontent.com/cyganiewicz/Budget-Transparency/refs/heads/main/Chart%20of%20Accounts";
 
-    let chartOfAccounts = {};
-
+    // Function to fetch and parse CSV data
     function fetchCSV(url) {
-        console.log(`Fetching data from: ${url}`);
         return fetch(url)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Network response was not ok: ${response.statusText}`);
-                }
-                return response.text();
-            })
-            .then(text => {
-                console.log("CSV data fetched successfully.");
-                const rows = text.trim().split("\n").map(row => row.split(",").map(cell => cell.trim()));
-                const headers = rows.shift().map(header => header.trim());
-                console.log("Parsed headers:", headers);
-                const data = rows.map(row => {
-                    return headers.reduce((acc, header, index) => {
-                        const value = row[index]?.replace(/[$,]/g, '').trim();
-                        acc[header] = isNaN(value) ? value : parseFloat(value);
-                        return acc;
-                    }, {});
-                });
-                console.log("Parsed data:", data);
-                return data;
-            })
-            .catch(error => {
-                console.error("Error fetching CSV:", error);
-            });
+            .then(response => response.text())
+            .then(data => Papa.parse(data, { header: true }).data);
     }
 
-    function loadChartOfAccounts() {
-        return fetchCSV(chartOfAccountsUrl).then(data => {
-            if (!data) {
-                console.error("No data found for Chart of Accounts.");
-                return;
-            }
-            chartOfAccounts = data.reduce((acc, item) => {
-                const accountNumber = item["Account Number"];
-                if (accountNumber && item["Category"] && item["Department"]) {
-                    acc[accountNumber] = {
-                        category: item["Category"],
-                        department: item["Department"]
-                    };
-                } else {
-                    console.warn("Missing category or department for account:", accountNumber);
-                }
-                return acc;
-            }, {});
-            console.log("Loaded Chart of Accounts:", chartOfAccounts);
-        });
-    }
+    // Initialize the portal with dynamic data
+    Promise.all([fetchCSV(budgetDataUrl), fetchCSV(chartOfAccountsUrl)]).then(([budgetData, chartOfAccounts]) => {
+        // Process the data into a structured format
+        const structuredData = processData(budgetData, chartOfAccounts);
+        initializeChartsAndTables(structuredData);
+    });
 
-    function updateSummaryCards(data) {
-        const totalFY25 = data.reduce((acc, item) => acc + (item["FY25 DEPT REQ."] || 0), 0);
-        const totalFY24 = data.reduce((acc, item) => acc + (item["FY24 BUDGET"] || 0), 0);
-        const percentageChange = calculatePercentageChange(totalFY24, totalFY25);
+    // Process the data into a structured format suitable for charts and tables
+    function processData(budgetData, chartOfAccounts) {
+        const structuredData = [];
+        const accountsMap = {};
 
-        document.getElementById("total-budget").textContent = `$${totalFY25.toLocaleString()}`;
-        document.getElementById("ytd-spending").textContent = `$${totalFY24.toLocaleString()}`;
-        document.getElementById("budget-change").textContent = percentageChange;
-
-        console.log("Updated summary cards:", {
-            totalFY25,
-            totalFY24,
-            percentageChange
-        });
-    }
-
-    function calculatePercentageChange(fy24, fy25) {
-        if (fy24 === 0) return "N/A";
-        return (((fy25 - fy24) / fy24) * 100).toFixed(2) + "%";
-    }
-
-    function groupDataByCategoryAndDepartment(data) {
-        console.log("Grouping data by category and department...");
-        return data.reduce((acc, item) => {
-            const accountNumber = item["Account Number"];
-            const chartEntry = chartOfAccounts[accountNumber] || {
-                category: "Other Spending",
-                department: "Miscellaneous"
+        // Create a mapping of account numbers to department and category info
+        chartOfAccounts.forEach(account => {
+            accountsMap[account.txtAccountNumber] = {
+                department: account.Department,
+                category: account.Category,
             };
-            const category = chartEntry.category;
-            const department = chartEntry.department;
-
-            if (!acc[category]) {
-                acc[category] = {};
-            }
-            if (!acc[category][department]) {
-                acc[category][department] = [];
-            }
-
-            acc[category][department].push(item);
-            return acc;
-        }, {});
-    }
-
-    function populateTable(data) {
-        console.log("Populating table with data...");
-        const tbody = document.getElementById("budget-table-body");
-        tbody.innerHTML = "";
-
-        const groupedData = groupDataByCategoryAndDepartment(data);
-        console.log("Grouped data:", groupedData);
-
-        Object.keys(groupedData).forEach(category => {
-            const categoryRow = document.createElement("tr");
-            categoryRow.classList.add("category-row");
-            categoryRow.innerHTML = `
-                <td colspan="5">${category} (Click to Expand)</td>
-            `;
-            categoryRow.addEventListener("click", () => {
-                const detailsRows = tbody.querySelectorAll(`.details-${category}`);
-                detailsRows.forEach(row => row.classList.toggle("hidden"));
-            });
-            tbody.appendChild(categoryRow);
-
-            Object.keys(groupedData[category]).forEach(department => {
-                const departmentRow = document.createElement("tr");
-                departmentRow.classList.add(`details-${category}`, "hidden", "department-row");
-                departmentRow.innerHTML = `
-                    <td colspan="5">${department} (Click to Expand)</td>
-                `;
-                departmentRow.addEventListener("click", () => {
-                    const lineItemRows = tbody.querySelectorAll(`.line-item-${category}-${department}`);
-                    lineItemRows.forEach(row => row.classList.toggle("hidden"));
-                });
-                tbody.appendChild(departmentRow);
-
-                groupedData[category][department].forEach(item => {
-                    const description = item["Description"] || "N/A";
-                    const fy23Actuals = item["FY23 ACTUALS"] || 0;
-                    const fy24Budget = item["FY24 BUDGET"] || 0;
-                    const fy25DeptReq = item["FY25 DEPT REQ."] || 0;
-                    const percentageChange = calculatePercentageChange(fy24Budget, fy25DeptReq);
-
-                    const row = document.createElement("tr");
-                    row.classList.add(`line-item-${category}-${department}`, "hidden", "line-item");
-                    row.innerHTML = `
-                        <td>${description} (${item["Account Number"]})</td>
-                        <td>$${fy23Actuals.toLocaleString()}</td>
-                        <td>$${fy24Budget.toLocaleString()}</td>
-                        <td>$${fy25DeptReq.toLocaleString()}</td>
-                        <td>${percentageChange}</td>
-                    `;
-                    tbody.appendChild(row);
-                });
-            });
         });
+
+        // Group data by category and department
+        budgetData.forEach(item => {
+            const accountInfo = accountsMap[item["Account Number"]];
+            if (!accountInfo) return; // Skip if no account info is found
+
+            const { department, category } = accountInfo;
+
+            // Find or create the category entry
+            let categoryEntry = structuredData.find(c => c.category === category);
+            if (!categoryEntry) {
+                categoryEntry = { category, departments: [] };
+                structuredData.push(categoryEntry);
+            }
+
+            // Find or create the department entry
+            let departmentEntry = categoryEntry.departments.find(d => d.name === department);
+            if (!departmentEntry) {
+                departmentEntry = { name: department, total: 0, lineItems: [] };
+                categoryEntry.departments.push(departmentEntry);
+            }
+
+            // Add the line item
+            const lineItem = {
+                description: item.Description,
+                fy21: parseFloat(item["FY21 ACTUALS"]) || 0,
+                fy22: parseFloat(item["FY22 ACTUALS"]) || 0,
+                fy23: parseFloat(item["FY23 ACTUALS"]) || 0,
+                fy24: parseFloat(item["FY24 BUDGET"]) || 0,
+                fy25: parseFloat(item["FY25 DEPT REQ."]) || 0,
+            };
+
+            departmentEntry.lineItems.push(lineItem);
+            departmentEntry.total += lineItem.fy25;
+        });
+
+        return structuredData;
     }
 
-    function createChart(data) {
-        const labels = data.map(item => item["Description"] || "N/A");
-        const fy24Budget = data.map(item => item["FY24 BUDGET"] || 0);
-        const fy25DeptReq = data.map(item => item["FY25 DEPT REQ."] || 0);
+    // Initialize the charts and tables with the processed data
+    function initializeChartsAndTables(budgetData) {
+        let currentCategory = null;
+        let currentDepartment = null;
 
-        const ctx = document.getElementById("expenditure-chart").getContext("2d");
-        new Chart(ctx, {
-            type: "bar",
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: "FY24 Budget",
-                        backgroundColor: "rgba(0, 123, 255, 0.5)",
-                        data: fy24Budget
+        // Function to update the category chart
+        function updateCategoryChart() {
+            const ctx = document.getElementById('categoryChart').getContext('2d');
+            const categoryLabels = budgetData.map(item => item.category);
+            const categoryData = budgetData.map(item => item.departments.reduce((sum, dept) => sum + dept.total, 0));
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: categoryLabels,
+                    datasets: [{
+                        label: 'Total Spending by Category',
+                        data: categoryData,
+                        backgroundColor: 'rgba(54, 162, 235, 0.6)'
+                    }]
+                },
+                options: {
+                    onClick: (event, elements) => {
+                        if (elements.length > 0) {
+                            const index = elements[0].index;
+                            currentCategory = budgetData[index];
+                            updateDepartmentChart();
+                        }
                     },
-                    {
-                        label: "FY25 Dept Request",
-                        backgroundColor: "rgba(220, 53, 69, 0.5)",
-                        data: fy25DeptReq
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
+                    responsive: true,
+                    plugins: {
+                        legend: { display: true }
                     }
                 }
-            }
-        });
+            });
+        }
 
-        console.log("Chart created with data:", { labels, fy24Budget, fy25DeptReq });
+        // Function to update the department chart based on the selected category
+        function updateDepartmentChart() {
+            const ctx = document.getElementById('departmentChart').getContext('2d');
+            const departmentLabels = currentCategory.departments.map(dept => dept.name);
+            const departmentData = currentCategory.departments.map(dept => dept.total);
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: departmentLabels,
+                    datasets: [{
+                        label: `Total Spending in ${currentCategory.category}`,
+                        data: departmentData,
+                        backgroundColor: 'rgba(75, 192, 192, 0.6)'
+                    }]
+                },
+                options: {
+                    onClick: (event, elements) => {
+                        if (elements.length > 0) {
+                            const index = elements[0].index;
+                            currentDepartment = currentCategory.departments[index];
+                            updateLineItemTable();
+                        }
+                    },
+                    responsive: true,
+                    plugins: {
+                        legend: { display: true }
+                    }
+                }
+            });
+        }
+
+        // Function to update the line item table based on the selected department
+        function updateLineItemTable() {
+            const tableBody = document.getElementById('budgetTable').querySelector('tbody');
+            tableBody.innerHTML = '';
+
+            currentDepartment.lineItems.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${currentDepartment.name}</td>
+                    <td>${currentCategory.category}</td>
+                    <td>${item.description}</td>
+                    <td>${item.fy21}</td>
+                    <td>${item.fy22}</td>
+                    <td>${item.fy23}</td>
+                    <td>${item.fy24}</td>
+                    <td>${item.fy25}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            document.getElementById('data-table').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Initialize the category chart
+        updateCategoryChart();
     }
-
-    // Load Chart of Accounts, then load budget data and render the page
-    loadChartOfAccounts()
-        .then(() => fetchCSV(budgetDataUrl))
-        .then(data => {
-            if (!data) {
-                console.error("No data available from the budget CSV.");
-                return;
-            }
-            updateSummaryCards(data);
-            populateTable(data);
-            createChart(data);
-        })
-        .catch(error => console.error("Error loading data:", error));
 });
