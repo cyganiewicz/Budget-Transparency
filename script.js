@@ -30,10 +30,14 @@ document.addEventListener("DOMContentLoaded", function() {
         return fetchCSV(chartOfAccountsUrl).then(data => {
             chartOfAccounts = data.reduce((acc, item) => {
                 const accountNumber = item["Account Number"];
-                acc[accountNumber] = {
-                    category: item["Category"] || "Uncategorized",
-                    department: item["Department"] || "Unknown Department"
-                };
+                if (accountNumber && item["Category"] && item["Department"]) {
+                    acc[accountNumber] = {
+                        category: item["Category"],
+                        department: item["Department"]
+                    };
+                } else {
+                    console.warn("Invalid entry in Chart of Accounts:", item);
+                }
                 return acc;
             }, {});
             console.log("Chart of Accounts:", chartOfAccounts);
@@ -53,10 +57,6 @@ document.addEventListener("DOMContentLoaded", function() {
     function calculatePercentageChange(fy24, fy25) {
         if (fy24 === 0) return "N/A";
         return (((fy25 - fy24) / fy24) * 100).toFixed(2) + "%";
-    }
-
-    function extractDepartmentCode(accountNumber) {
-        return accountNumber.slice(4, 7);
     }
 
     function groupDataByCategoryAndDepartment(data) {
