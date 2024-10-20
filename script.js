@@ -51,15 +51,23 @@ document.addEventListener("DOMContentLoaded", function() {
         return (((fy25 - fy24) / fy24) * 100).toFixed(2) + "%";
     }
 
-    function groupDataByCategory(data) {
+    function groupDataByCategoryAndDepartment(data) {
         const grouped = data.reduce((acc, item) => {
-            const category = chartOfAccounts[item["Account Number"]] || "Uncategorized";
+            const accountNumber = item["Account Number"];
+            const category = chartOfAccounts[accountNumber] || "Uncategorized";
+            const department = item["Department"] || "Unknown Department";
+
             if (!acc[category]) {
-                acc[category] = [];
+                acc[category] = {};
             }
-            acc[category].push(item);
+            if (!acc[category][department]) {
+                acc[category][department] = [];
+            }
+
+            acc[category][department].push(item);
             return acc;
         }, {});
+
         return grouped;
     }
 
@@ -67,7 +75,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const tbody = document.getElementById("budget-table-body");
         tbody.innerHTML = "";
 
-        const groupedData = groupDataByCategory(data);
+        const groupedData = groupDataByCategoryAndDepartment(data);
         Object.keys(groupedData).forEach(category => {
             const categoryRow = document.createElement("tr");
             categoryRow.innerHTML = `
@@ -81,25 +89,40 @@ document.addEventListener("DOMContentLoaded", function() {
             });
             tbody.appendChild(categoryRow);
 
-            groupedData[category].forEach(item => {
-                const accountNumber = item["Account Number"] || "N/A";
-                const description = item["Description"] || "N/A";
-                const fy23Actuals = item["FY23 ACTUALS"] || 0;
-                const fy24Budget = item["FY24 BUDGET"] || 0;
-                const fy25DeptReq = item["FY25 DEPT REQ."] || 0;
-                const percentageChange = calculatePercentageChange(fy24Budget, fy25DeptReq);
-
-                const row = document.createElement("tr");
-                row.classList.add(`details-${category}`);
-                row.classList.add("hidden"); // Start hidden until the category is clicked
-                row.innerHTML = `
-                    <td>${description} (${accountNumber})</td>
-                    <td>$${fy23Actuals.toLocaleString()}</td>
-                    <td>$${fy24Budget.toLocaleString()}</td>
-                    <td>$${fy25DeptReq.toLocaleString()}</td>
-                    <td>${percentageChange}</td>
+            Object.keys(groupedData[category]).forEach(department => {
+                const departmentRow = document.createElement("tr");
+                departmentRow.classList.add(`details-${category}`);
+                departmentRow.classList.add("hidden");
+                departmentRow.innerHTML = `
+                    <td colspan="5" class="department-row" style="background-color: #17a2b8; color: white; cursor: pointer;">
+                        ${department} (Click to Expand)
+                    </td>
                 `;
-                tbody.appendChild(row);
+                departmentRow.addEventListener("click", () => {
+                    const lineItemRows = tbody.querySelectorAll(`.line-item-${category}-${department}`);
+                    lineItemRows.forEach(row => row.classList.toggle("hidden"));
+                });
+                tbody.appendChild(departmentRow);
+
+                groupedData[category][department].forEach(item => {
+                    const description = item["Description"] || "N/A";
+                    const fy23Actuals = item["FY23 ACTUALS"] || 0;
+                    const fy24Budget = item["FY24 BUDGET"] || 0;
+                    const fy25DeptReq = item["FY25 DEPT REQ."] || 0;
+                    const percentageChange = calculatePercentageChange(fy24Budget, fy25DeptReq);
+
+                    const row = document.createElement("tr");
+                    row.classList.add(`line-item-${category}-${department}`);
+                    row.classList.add("hidden");
+                    row.innerHTML = `
+                        <td>${description} (${item["Account Number"]})</td>
+                        <td>$${fy23Actuals.toLocaleString()}</td>
+                        <td>$${fy24Budget.toLocaleString()}</td>
+                        <td>$${fy25DeptReq.toLocaleString()}</td>
+                        <td>${percentageChange}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
             });
         });
     }
