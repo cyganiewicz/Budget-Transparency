@@ -4,45 +4,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Budget Transparency Portal</title>
-    <link rel="stylesheet" href="./styles.css">
-    <script defer src="./script.js"></script>
+    <style>
+        .hidden {
+            display: none;
+        }
+        .category-row {
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+        }
+        .department-row {
+            background-color: #17a2b8;
+            color: white;
+            cursor: pointer;
+        }
+        .line-item {
+            background-color: #f8f9fa;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1 class="title">Budget Transparency Portal</h1>
-        <div class="summary-cards">
-            <div class="card" id="total-budget-card">
-                <h2>Total Budget FY25</h2>
-                <p id="total-budget">$0</p>
-            </div>
-            <div class="card" id="ytd-spending-card">
-                <h2>Total Spending FY23</h2>
-                <p id="ytd-spending">$0</p>
-            </div>
-            <div class="card" id="remaining-budget-card">
-                <h2>Budget Change FY25 vs FY24</h2>
-                <p id="budget-change">$0</p>
-            </div>
-        </div>
-        <h2>Expenditure Overview</h2>
-        <canvas id="expenditure-chart" width="400" height="200"></canvas>
-        <h2>Detailed Budget Data</h2>
-        <div class="table-container">
-            <table id="budget-table">
-                <thead>
-                    <tr>
-                        <th>Description</th>
-                        <th>FY23 Actuals</th>
-                        <th>FY24 Budget</th>
-                        <th>FY25 Dept Request</th>
-                        <th>% Change FY24 to FY25</th>
-                    </tr>
-                </thead>
-                <tbody id="budget-table-body">
-                    <!-- Data will be inserted here -->
-                </tbody>
-            </table>
-        </div>
+    <h1>Budget Transparency Portal</h1>
+    <div>
+        <h2>Total FY25 Budget: <span id="total-budget">$0</span></h2>
+        <h2>Total FY24 Budget: <span id="ytd-spending">$0</span></h2>
+        <h2>Budget Change: <span id="budget-change">0%</span></h2>
     </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th>FY23 Actuals</th>
+                <th>FY24 Budget</th>
+                <th>FY25 Dept Request</th>
+                <th>% Change</th>
+            </tr>
+        </thead>
+        <tbody id="budget-table-body"></tbody>
+    </table>
+    <canvas id="expenditure-chart" width="800" height="400"></canvas>
+    <script src="script.js"></script>
 </body>
 </html>
