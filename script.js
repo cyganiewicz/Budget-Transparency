@@ -86,6 +86,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const categoryLabels = budgetData.map(item => item.category);
             const categoryData = budgetData.map(item => item.departments.reduce((sum, dept) => sum + dept.total, 0));
 
+            // Create the category chart
             new Chart(ctx, {
                 type: 'bar',
                 data: {
