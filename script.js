@@ -1,5 +1,8 @@
 document.addEventListener("DOMContentLoaded", function() {
     const budgetDataUrl = "https://raw.githubusercontent.com/cyganiewicz/Budget-Transparency/refs/heads/main/TEST%20FY25%20General%20Fund%20Budget%20Master%20for%20Accounting.csv";
+    const chartOfAccountsUrl = "https://raw.githubusercontent.com/cyganiewicz/Budget-Transparency/refs/heads/main/Chart%20of%20Accounts";
+
+    let chartOfAccounts = {};
 
     function fetchCSV(url) {
         return fetch(url)
@@ -11,33 +14,32 @@ document.addEventListener("DOMContentLoaded", function() {
             })
             .then(text => {
                 const rows = text.trim().split("\n").map(row => row.split(",").map(cell => cell.trim()));
-                console.log("Raw CSV Rows:", rows);
-
                 const headers = rows.shift().map(header => header.trim());
-                console.log("Headers:", headers);
-
-                // Parse the rows into a structured format
                 return rows.map(row => {
-                    const item = headers.reduce((acc, header, index) => {
+                    return headers.reduce((acc, header, index) => {
                         const value = row[index]?.replace(/[$,]/g, '').trim();
                         acc[header] = isNaN(value) ? value : parseFloat(value);
                         return acc;
                     }, {});
-                    console.log("Parsed Item:", item);  // Log each parsed item for debugging
-                    return item;
                 });
             })
             .catch(error => console.error("Error fetching CSV:", error));
+    }
+
+    function loadChartOfAccounts() {
+        return fetchCSV(chartOfAccountsUrl).then(data => {
+            chartOfAccounts = data.reduce((acc, item) => {
+                acc[item["Account Number"]] = item["Category"] || "Uncategorized";
+                return acc;
+            }, {});
+            console.log("Chart of Accounts:", chartOfAccounts);
+        });
     }
 
     function updateSummaryCards(data) {
         const totalFY25 = data.reduce((acc, item) => acc + (item["FY25 DEPT REQ."] || 0), 0);
         const totalFY24 = data.reduce((acc, item) => acc + (item["FY24 BUDGET"] || 0), 0);
         const percentageChange = calculatePercentageChange(totalFY24, totalFY25);
-
-        console.log("Total FY25:", totalFY25);
-        console.log("Total FY24:", totalFY24);
-        console.log("Percentage Change:", percentageChange);
 
         document.getElementById("total-budget").textContent = `$${totalFY25.toLocaleString()}`;
         document.getElementById("ytd-spending").textContent = `$${totalFY24.toLocaleString()}`;
@@ -49,28 +51,56 @@ document.addEventListener("DOMContentLoaded", function() {
         return (((fy25 - fy24) / fy24) * 100).toFixed(2) + "%";
     }
 
+    function groupDataByCategory(data) {
+        const grouped = data.reduce((acc, item) => {
+            const category = chartOfAccounts[item["Account Number"]] || "Uncategorized";
+            if (!acc[category]) {
+                acc[category] = [];
+            }
+            acc[category].push(item);
+            return acc;
+        }, {});
+        return grouped;
+    }
+
     function populateTable(data) {
         const tbody = document.getElementById("budget-table-body");
         tbody.innerHTML = "";
-        data.forEach(item => {
-            const accountNumber = item["Account Number"] || "N/A";
-            const description = item["Description"] || "N/A";
-            const fy23Actuals = item["FY23 ACTUALS"] || 0;
-            const fy24Budget = item["FY24 BUDGET"] || 0;
-            const fy25DeptReq = item["FY25 DEPT REQ."] || 0;
-            const percentageChange = calculatePercentageChange(fy24Budget, fy25DeptReq);
 
-            console.log(`Row for ${description}: FY23 Actuals: ${fy23Actuals}, FY24 Budget: ${fy24Budget}, FY25 Dept Req: ${fy25DeptReq}`);
-
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${description} (${accountNumber})</td>
-                <td>$${fy23Actuals.toLocaleString()}</td>
-                <td>$${fy24Budget.toLocaleString()}</td>
-                <td>$${fy25DeptReq.toLocaleString()}</td>
-                <td>${percentageChange}</td>
+        const groupedData = groupDataByCategory(data);
+        Object.keys(groupedData).forEach(category => {
+            const categoryRow = document.createElement("tr");
+            categoryRow.innerHTML = `
+                <td colspan="5" class="category-row" style="background-color: #007BFF; color: white; cursor: pointer;">
+                    ${category} (Click to Expand)
+                </td>
             `;
-            tbody.appendChild(row);
+            categoryRow.addEventListener("click", () => {
+                const detailsRows = tbody.querySelectorAll(`.details-${category}`);
+                detailsRows.forEach(row => row.classList.toggle("hidden"));
+            });
+            tbody.appendChild(categoryRow);
+
+            groupedData[category].forEach(item => {
+                const accountNumber = item["Account Number"] || "N/A";
+                const description = item["Description"] || "N/A";
+                const fy23Actuals = item["FY23 ACTUALS"] || 0;
+                const fy24Budget = item["FY24 BUDGET"] || 0;
+                const fy25DeptReq = item["FY25 DEPT REQ."] || 0;
+                const percentageChange = calculatePercentageChange(fy24Budget, fy25DeptReq);
+
+                const row = document.createElement("tr");
+                row.classList.add(`details-${category}`);
+                row.classList.add("hidden"); // Start hidden until the category is clicked
+                row.innerHTML = `
+                    <td>${description} (${accountNumber})</td>
+                    <td>$${fy23Actuals.toLocaleString()}</td>
+                    <td>$${fy24Budget.toLocaleString()}</td>
+                    <td>$${fy25DeptReq.toLocaleString()}</td>
+                    <td>${percentageChange}</td>
+                `;
+                tbody.appendChild(row);
+            });
         });
     }
 
@@ -108,8 +138,9 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // Fetch and process the data
-    fetchCSV(budgetDataUrl)
+    // Load Chart of Accounts, then load budget data
+    loadChartOfAccounts()
+        .then(() => fetchCSV(budgetDataUrl))
         .then(data => {
             updateSummaryCards(data);
             populateTable(data);
