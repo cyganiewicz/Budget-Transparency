@@ -119,7 +119,12 @@ document.addEventListener("DOMContentLoaded", function () {
             const departmentLabels = currentCategory.departments.map(dept => dept.name);
             const departmentData = currentCategory.departments.map(dept => dept.total);
 
-            new Chart(ctx, {
+            // Destroy previous chart instance if it exists to avoid duplication
+            if (window.departmentChartInstance) {
+                window.departmentChartInstance.destroy();
+            }
+
+            window.departmentChartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: departmentLabels,
@@ -157,11 +162,11 @@ document.addEventListener("DOMContentLoaded", function () {
                     <td>${currentDepartment.name}</td>
                     <td>${currentCategory.category}</td>
                     <td>${item.description}</td>
-                    <td>${item.fy21}</td>
-                    <td>${item.fy22}</td>
-                    <td>${item.fy23}</td>
-                    <td>${item.fy24}</td>
-                    <td>${item.fy25}</td>
+                    <td>${item.fy21.toFixed(2)}</td>
+                    <td>${item.fy22.toFixed(2)}</td>
+                    <td>${item.fy23.toFixed(2)}</td>
+                    <td>${item.fy24.toFixed(2)}</td>
+                    <td>${item.fy25.toFixed(2)}</td>
                 `;
                 tableBody.appendChild(row);
             });
