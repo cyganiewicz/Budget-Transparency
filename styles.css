@@ -1,55 +1,63 @@
-/* Hides elements by default, making them visible only when toggled */
-.hidden {
-    display: none;
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
 }
 
-/* Styling for category rows */
-.category-row {
-    background-color: #007BFF;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
+header {
+    background-color: #004080;
+    color: #fff;
+    padding: 20px;
+    text-align: center;
 }
 
-/* Styling for department rows */
-.department-row {
-    background-color: #17a2b8;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
+nav ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    background-color: #003366;
 }
 
-/* Styling for line items (individual budget items) */
-.line-item {
-    background-color: #f8f9fa;
-    color: #333;
+nav ul li {
+    margin: 0 15px;
 }
 
-/* Basic table styling */
+nav ul li a {
+    color: #fff;
+    text-decoration: none;
+    padding: 10px;
+    display: block;
+}
+
+section {
+    margin: 20px;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+canvas {
+    max-width: 100%;
+    height: 400px;
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
+    margin-top: 20px;
 }
 
-/* Table headers and cells */
-th, td {
+table th, table td {
+    border: 1px solid #ddd;
     padding: 8px;
     text-align: left;
-    border: 1px solid #ddd;
 }
 
-/* Header background styling */
-th {
-    background-color: #f1f1f1;
-    font-weight: bold;
-}
-
-/* Hover effects for category rows */
-.category-row:hover, .department-row:hover {
-    background-color: #0056b3; /* Darker shade for hover effect */
-}
-
-/* Hover effects for line items */
-.line-item:hover {
-    background-color: #e9ecef; /* Light grey for hover effect */
+table th {
+    background-color: #004080;
+    color: #fff;
 }
