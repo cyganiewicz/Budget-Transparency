@@ -29,7 +29,11 @@ document.addEventListener("DOMContentLoaded", function() {
     function loadChartOfAccounts() {
         return fetchCSV(chartOfAccountsUrl).then(data => {
             chartOfAccounts = data.reduce((acc, item) => {
-                acc[item["Account Number"]] = item["Category"] || "Uncategorized";
+                const accountNumber = item["Account Number"];
+                acc[accountNumber] = {
+                    category: item["Category"] || "Uncategorized",
+                    department: item["Department"] || "Unknown Department"
+                };
                 return acc;
             }, {});
             console.log("Chart of Accounts:", chartOfAccounts);
@@ -51,11 +55,16 @@ document.addEventListener("DOMContentLoaded", function() {
         return (((fy25 - fy24) / fy24) * 100).toFixed(2) + "%";
     }
 
+    function extractDepartmentCode(accountNumber) {
+        return accountNumber.slice(4, 7);
+    }
+
     function groupDataByCategoryAndDepartment(data) {
         const grouped = data.reduce((acc, item) => {
             const accountNumber = item["Account Number"];
-            const category = chartOfAccounts[accountNumber] || "Uncategorized";
-            const department = item["Department"] || "Unknown Department";
+            const chartEntry = chartOfAccounts[accountNumber] || {};
+            const category = chartEntry.category || "Uncategorized";
+            const department = chartEntry.department || "Unknown Department";
 
             if (!acc[category]) {
                 acc[category] = {};
