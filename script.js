@@ -58,7 +58,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     function groupDataByCategoryAndDepartment(data) {
-        const grouped = data.reduce((acc, item) => {
+        return data.reduce((acc, item) => {
             const accountNumber = item["Account Number"];
             const chartEntry = chartOfAccounts[accountNumber] || {
                 category: "Other Spending",
@@ -77,8 +77,6 @@ document.addEventListener("DOMContentLoaded", function() {
             acc[category][department].push(item);
             return acc;
         }, {});
-
-        return grouped;
     }
 
     function populateTable(data) {
@@ -88,10 +86,9 @@ document.addEventListener("DOMContentLoaded", function() {
         const groupedData = groupDataByCategoryAndDepartment(data);
         Object.keys(groupedData).forEach(category => {
             const categoryRow = document.createElement("tr");
+            categoryRow.classList.add("category-row");
             categoryRow.innerHTML = `
-                <td colspan="5" class="category-row" style="background-color: #007BFF; color: white; cursor: pointer;">
-                    ${category} (Click to Expand)
-                </td>
+                <td colspan="5">${category} (Click to Expand)</td>
             `;
             categoryRow.addEventListener("click", () => {
                 const detailsRows = tbody.querySelectorAll(`.details-${category}`);
@@ -101,12 +98,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
             Object.keys(groupedData[category]).forEach(department => {
                 const departmentRow = document.createElement("tr");
-                departmentRow.classList.add(`details-${category}`);
-                departmentRow.classList.add("hidden");
+                departmentRow.classList.add(`details-${category}`, "hidden", "department-row");
                 departmentRow.innerHTML = `
-                    <td colspan="5" class="department-row" style="background-color: #17a2b8; color: white; cursor: pointer;">
-                        ${department} (Click to Expand)
-                    </td>
+                    <td colspan="5">${department} (Click to Expand)</td>
                 `;
                 departmentRow.addEventListener("click", () => {
                     const lineItemRows = tbody.querySelectorAll(`.line-item-${category}-${department}`);
@@ -122,8 +116,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     const percentageChange = calculatePercentageChange(fy24Budget, fy25DeptReq);
 
                     const row = document.createElement("tr");
-                    row.classList.add(`line-item-${category}-${department}`);
-                    row.classList.add("hidden");
+                    row.classList.add(`line-item-${category}-${department}`, "hidden", "line-item");
                     row.innerHTML = `
                         <td>${description} (${item["Account Number"]})</td>
                         <td>$${fy23Actuals.toLocaleString()}</td>
@@ -144,40 +137,4 @@ document.addEventListener("DOMContentLoaded", function() {
 
         const ctx = document.getElementById("expenditure-chart").getContext("2d");
         new Chart(ctx, {
-            type: "bar",
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: "FY24 Budget",
-                        backgroundColor: "rgba(0, 123, 255, 0.5)",
-                        data: fy24Budget
-                    },
-                    {
-                        label: "FY25 Dept Request",
-                        backgroundColor: "rgba(220, 53, 69, 0.5)",
-                        data: fy25DeptReq
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-    }
-
-    // Load Chart of Accounts, then load budget data
-    loadChartOfAccounts()
-        .then(() => fetchCSV(budgetDataUrl))
-        .then(data => {
-            updateSummaryCards(data);
-            populateTable(data);
-            createChart(data);
-        })
-        .catch(error => console.error("Error loading data:", error));
-});
+            type
