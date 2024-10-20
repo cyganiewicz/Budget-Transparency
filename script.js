@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function() {
-    const budgetDataUrl = "https://raw.githubusercontent.com/cyganiewicz/Budget-Transparency/refs/heads/main/TEST%20FY25%20General%20Fund%20Budget%20Master%20for%20Accounting.csv?token=GHSAT0AAAAAACZHVUVKICL42LXAGALLJCQKZYVKDWA";
+    const budgetDataUrl = "https://raw.githubusercontent.com/cyganiewicz/Budget-Transparency/main/TEST%20FY25%20General%20Fund%20Budget%20Master%20for%20Accounting.csv";
 
     function fetchCSV(url) {
         return fetch(url)
@@ -79,3 +79,31 @@ document.addEventListener("DOMContentLoaded", function() {
                         label: "FY24 Budget",
                         backgroundColor: "rgba(0, 123, 255, 0.5)",
                         data: fy24Budget
+                    },
+                    {
+                        label: "FY25 Dept Request",
+                        backgroundColor: "rgba(220, 53, 69, 0.5)",
+                        data: fy25DeptReq
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+
+    // Fetch and process the data
+    fetchCSV(budgetDataUrl)
+        .then(data => {
+            updateSummaryCards(data);
+            populateTable(data);
+            createChart(data);
+        })
+        .catch(error => console.error("Error loading data:", error));
+});
