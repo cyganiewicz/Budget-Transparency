@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function() {
-    const budgetDataUrl = "https://raw.githubusercontent.com/cyganiewicz/Budget-Transparency/main/TEST%20FY25%20General%20Fund%20Budget%20Master%20for%20Accounting.csv";
+    const budgetDataUrl = "https://raw.githubusercontent.com/cyganiewicz/Budget-Transparency/refs/heads/main/TEST%20FY25%20General%20Fund%20Budget%20Master%20for%20Accounting.csv";
 
     function fetchCSV(url) {
         return fetch(url)
@@ -16,6 +16,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 const headers = rows.shift().map(header => header.trim());
                 console.log("Headers:", headers);
 
+                // Parse the rows into a structured format
                 return rows.map(row => {
                     const item = headers.reduce((acc, header, index) => {
                         const value = row[index]?.replace(/[$,]/g, '').trim();
