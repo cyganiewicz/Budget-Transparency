@@ -5,30 +5,52 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Budget Transparency Portal</title>
     <style>
+        /* CSS styles as discussed */
         .hidden {
             display: none;
         }
+
         .category-row {
             background-color: #007BFF;
             color: white;
+            font-weight: bold;
             cursor: pointer;
         }
+
         .department-row {
             background-color: #17a2b8;
             color: white;
+            font-weight: bold;
             cursor: pointer;
         }
+
         .line-item {
             background-color: #f8f9fa;
+            color: #333;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
         }
+
         th, td {
             padding: 8px;
             text-align: left;
             border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f1f1f1;
+            font-weight: bold;
+        }
+
+        .category-row:hover, .department-row:hover {
+            background-color: #0056b3; /* Darker shade for hover effect */
+        }
+
+        .line-item:hover {
+            background-color: #e9ecef; /* Light grey for hover effect */
         }
     </style>
 </head>
