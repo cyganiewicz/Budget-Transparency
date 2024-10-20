@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // Create a mapping of account numbers to department and category info
         chartOfAccounts.forEach(account => {
-            accountsMap[account.txtAccountNumber] = {
+            accountsMap[account.Account Number] = {
                 department: account.Department,
                 category: account.Category,
             };
