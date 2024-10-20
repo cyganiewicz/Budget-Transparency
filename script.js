@@ -35,8 +35,6 @@ document.addEventListener("DOMContentLoaded", function() {
                         category: item["Category"],
                         department: item["Department"]
                     };
-                } else {
-                    console.warn("Invalid entry in Chart of Accounts:", item);
                 }
                 return acc;
             }, {});
@@ -62,9 +60,12 @@ document.addEventListener("DOMContentLoaded", function() {
     function groupDataByCategoryAndDepartment(data) {
         const grouped = data.reduce((acc, item) => {
             const accountNumber = item["Account Number"];
-            const chartEntry = chartOfAccounts[accountNumber] || {};
-            const category = chartEntry.category || "Uncategorized";
-            const department = chartEntry.department || "Unknown Department";
+            const chartEntry = chartOfAccounts[accountNumber] || {
+                category: "Other Spending",
+                department: "Miscellaneous"
+            };
+            const category = chartEntry.category;
+            const department = chartEntry.department;
 
             if (!acc[category]) {
                 acc[category] = {};
