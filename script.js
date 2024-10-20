@@ -12,16 +12,17 @@ document.addEventListener("DOMContentLoaded", function() {
             .then(text => {
                 const rows = text.trim().split("\n").map(row => row.split(",").map(cell => cell.trim()));
                 console.log("Raw CSV Rows:", rows);
-                const headers = rows.shift();
+
+                const headers = rows.shift().map(header => header.trim());
                 console.log("Headers:", headers);
 
-                // Parse the rows into a structured format
                 return rows.map(row => {
                     const item = headers.reduce((acc, header, index) => {
                         const value = row[index]?.replace(/[$,]/g, '').trim();
                         acc[header] = isNaN(value) ? value : parseFloat(value);
                         return acc;
                     }, {});
+                    console.log("Parsed Item:", item);  // Log each parsed item for debugging
                     return item;
                 });
             })
@@ -32,6 +33,10 @@ document.addEventListener("DOMContentLoaded", function() {
         const totalFY25 = data.reduce((acc, item) => acc + (item["FY25 DEPT REQ."] || 0), 0);
         const totalFY24 = data.reduce((acc, item) => acc + (item["FY24 BUDGET"] || 0), 0);
         const percentageChange = calculatePercentageChange(totalFY24, totalFY25);
+
+        console.log("Total FY25:", totalFY25);
+        console.log("Total FY24:", totalFY24);
+        console.log("Percentage Change:", percentageChange);
 
         document.getElementById("total-budget").textContent = `$${totalFY25.toLocaleString()}`;
         document.getElementById("ytd-spending").textContent = `$${totalFY24.toLocaleString()}`;
@@ -53,6 +58,8 @@ document.addEventListener("DOMContentLoaded", function() {
             const fy24Budget = item["FY24 BUDGET"] || 0;
             const fy25DeptReq = item["FY25 DEPT REQ."] || 0;
             const percentageChange = calculatePercentageChange(fy24Budget, fy25DeptReq);
+
+            console.log(`Row for ${description}: FY23 Actuals: ${fy23Actuals}, FY24 Budget: ${fy24Budget}, FY25 Dept Req: ${fy25DeptReq}`);
 
             const row = document.createElement("tr");
             row.innerHTML = `
