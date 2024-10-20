@@ -12,9 +12,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Initialize the portal with dynamic data
     Promise.all([fetchCSV(budgetDataUrl), fetchCSV(chartOfAccountsUrl)]).then(([budgetData, chartOfAccounts]) => {
+        console.log("Budget Data Loaded:", budgetData);
+        console.log("Chart of Accounts Data Loaded:", chartOfAccounts);
+        
         // Process the data into a structured format
         const structuredData = processData(budgetData, chartOfAccounts);
+        console.log("Structured Data:", structuredData);
+        
         initializeChartsAndTables(structuredData);
+    }).catch(error => {
+        console.error("Error loading CSV data:", error);
     });
 
     // Process the data into a structured format suitable for charts and tables
@@ -94,6 +101,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         if (elements.length > 0) {
                             const index = elements[0].index;
                             currentCategory = budgetData[index];
+                            console.log("Selected Category:", currentCategory);
                             updateDepartmentChart();
                         }
                     },
@@ -126,6 +134,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         if (elements.length > 0) {
                             const index = elements[0].index;
                             currentDepartment = currentCategory.departments[index];
+                            console.log("Selected Department:", currentDepartment);
                             updateLineItemTable();
                         }
                     },
