@@ -14,15 +14,29 @@
         <h1>Town of Rutland Budget Transparency Portal</h1>
         <nav>
             <ul>
-                <li><a href="#category-spending">Category Spending</a></li>
+                <li><a href="#summary">Summary</a></li>
+                <li><a href="#category-spending">Spending by Category</a></li>
+                <li><a href="#department-treemap">Spending by Department</a></li>
                 <li><a href="#data-table">Detailed Line Items</a></li>
             </ul>
         </nav>
     </header>
 
+    <section id="summary">
+        <div id="summary">
+            <!-- Summary content (FY24, FY25 totals, and percentage change) will be dynamically inserted here -->
+        </div>
+    </section>
+
     <section id="category-spending">
-        <h2>Category Spending for FY25</h2>
+        <h2>Spending by Category (FY25)</h2>
         <canvas id="categoryChart"></canvas>
+    </section>
+
+    <section id="department-treemap">
+        <h2>Spending by Department (FY25)</h2>
+        <canvas id="departmentTreemap"></canvas>
+        <!-- Note: Treemap will be rendered dynamically using JavaScript -->
     </section>
 
     <section id="data-table">
@@ -41,7 +55,7 @@
                 </tr>
             </thead>
             <tbody>
-                <!-- Rows will be populated by JavaScript -->
+                <!-- Rows will be populated by JavaScript dynamically -->
             </tbody>
         </table>
     </section>
