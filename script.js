@@ -15,13 +15,13 @@ document.addEventListener("DOMContentLoaded", function() {
                 const headers = rows.shift();
                 console.log("Headers:", headers);
 
+                // Parse the rows into a structured format
                 return rows.map(row => {
                     const item = headers.reduce((acc, header, index) => {
                         const value = row[index]?.replace(/[$,]/g, '').trim();
                         acc[header] = isNaN(value) ? value : parseFloat(value);
                         return acc;
                     }, {});
-                    console.log("Parsed Row:", item);
                     return item;
                 });
             })
@@ -47,6 +47,8 @@ document.addEventListener("DOMContentLoaded", function() {
         const tbody = document.getElementById("budget-table-body");
         tbody.innerHTML = "";
         data.forEach(item => {
+            const accountNumber = item["Account Number"] || "N/A";
+            const description = item["Description"] || "N/A";
             const fy23Actuals = item["FY23 ACTUALS"] || 0;
             const fy24Budget = item["FY24 BUDGET"] || 0;
             const fy25DeptReq = item["FY25 DEPT REQ."] || 0;
@@ -54,7 +56,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
             const row = document.createElement("tr");
             row.innerHTML = `
-                <td>${item["Description"] || "N/A"}</td>
+                <td>${description} (${accountNumber})</td>
                 <td>$${fy23Actuals.toLocaleString()}</td>
                 <td>$${fy24Budget.toLocaleString()}</td>
                 <td>$${fy25DeptReq.toLocaleString()}</td>
